@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TP</title>
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content-filtro {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content-filtro a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content-filtro a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown-content-agregar {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content-agregar a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content-agregar a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .show {
+            display: block;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #ccc;
+            background-color: aliceblue;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input{
+            border-radius: 10px;
+        }
+
+        table{
+            background-color: bisque;
+            text-align: center;
+        }
+
+        .titulo{
+            font-size: 50px;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        label{
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        #sectionInputs {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #sectionInputs label {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        #sectionInputs input{
+            margin-left: 10px;
+        }
+
+        button{
+            background-color: rgb(154, 154, 154);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: rgb(185, 185, 185);
+        }
+        .btnAgregar{
+            margin-top: 10px;
+        }
+        #checkboxes{
+            margin-top: 10px;
+        }
+        #checkboxes label{
+            margin-left: 10px;
+            margin-right: 10px;
+            background-color: lightgray;
+            border-radius: 5px;
+            padding: 3px;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: all;
+        }
+
+        #spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="overlay">
+    <div id="spinner">
+    </div>
+</div>
+<form id="datos">
+    <label class="titulo">Formulario Datos</label>
+    <br>
+    <table id="tabla" border="1">
+        <thead>
+            <tr id="headerNombres"></tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <button type="submit" value="agregar" class="btnAgregar">Agregar</button>
+</form>
+<form id="amb">
+    <h1 id="titulo">Formulario ABM</h1>
+    <div>
+        <label>Tipo:</label>
+        <div class="dropdown">
+            <button type="button" id="dropdownAgregar" onclick="toggleDropdownAgregar()">Auto</button>
+            <div id="dropdownMenuAgregar" class="dropdown-content-agregar">
+                <a onclick="selectOptionAgregar('Auto')">Auto</a>
+                <a onclick="selectOptionAgregar('Camion')">Camion</a>
+            </div>
+        </div>
+    </div>
+    <section id="sectionInputs"></section>
+    <div>
+        <button type="submit" onclick="() => habilitar()" value="agregar">Aceptar</button>
+        <button type="button" onclick="cancelar()" value="cancelar">Cancelar</button>
+    </div>
+
+</form>
+</body>
+<script>
+    function obtenerListaXML(url){
+        var xml = new XMLHttpRequest();
+        var resultado = [];
+        xml.onreadystatechange = function() {
+            if (xml.readyState == 4) {
+                if(xml.status == 200){
+                    var data = JSON.parse(xml.responseText);
+                    data.forEach(vehiculo => {
+                    if('carga' in vehiculo && 'autonomia' in vehiculo){
+                        resultado.push(new Camion(vehiculo.id, vehiculo.modelo, 
+                        vehiculo.anoFabricacion, vehiculo.velMax, vehiculo.carga, vehiculo.autonomia));
+                    }
+                    else if('cantidadPuertas' in vehiculo && 'asientos' in vehiculo){
+                        resultado.push(new Auto(vehiculo.id, vehiculo.modelo, 
+                        vehiculo.anoFabricacion, vehiculo.velMax, vehiculo.cantidadPuertas, vehiculo.asientos));
+                    }
+                    });
+                }
+                else{
+                    window.alert(`Ocurrió el error: ${xml.status}`);
+                }
+            }
+        }; 
+        xml.open("GET", url, false);
+        xml.send();
+        return resultado;
+    }
+
+    //Primer y segundo punto
+    class Vehiculo{
+        id = 0;
+        modelo = "Vacio";
+        anoFabricacion = 1885;
+        velMax = 1;
+        constructor(id, modelo, anoFabricacion, velMax){
+            this.id = id;
+            this.modelo = modelo;
+            this.anoFabricacion = anoFabricacion;
+            this.velMax = velMax;
+        }
+        toString(){
+            return `ID: ${this.id}, Modelo: ${this.modelo}, 
+            Año de Fabricacion: ${this.anoFabricacion}, Velocidad Maxima: 
+            ${this.velMax}`;
+        }
+    }
+    class Camion extends Vehiculo{
+        carga = 1;
+        autonomia = 1;
+        constructor(id, modelo, anoFabricacion, velMax, carga, autonomia){
+            super(id, modelo, anoFabricacion, velMax);
+            this.carga = carga;
+            this.autonomia = autonomia;
+        }
+        toString(){
+            return `${super.toString()}, Carga: ${this.carga},
+             Autonomia: ${this.autonomia}`
+        }
+    }
+    class Auto extends Vehiculo{
+        cantidadPuertas = 0;
+        asientos = 1;
+        constructor(id, modelo, anoFabricacion, velMax, cantidadPuertas, asientos){
+            super(id, modelo, anoFabricacion, velMax);
+            this.cantidadPuertas = cantidadPuertas;
+            this.asientos = asientos;
+        }
+        toString(){
+            return `${super.toString()}, Cantidad de Puertas: ${this.cantidadPuertas},
+             Asientos: ${this.asientos}`
+        }
+    }
+
+    var vehiculos = obtenerListaXML("https://examenesutn.vercel.app/api/VehiculoAutoCamion");
+
+    //El resto
+    const ambForm = document.getElementById("amb");
+    const datosForm = document.getElementById("datos");
+    ambForm.style.display = "none";
+    const tablaBody = document.querySelector("#tabla tbody");
+
+    //Dropdowns
+
+    function toggleDropdownAgregar() {
+        document.getElementById("dropdownMenuAgregar").classList.toggle("show");
+    }
+
+    function selectOptionAgregar(option) {
+        var botonAgregar = document.getElementById("dropdownAgregar");
+        var carga = document.getElementsByName(tablaNombres[4].id + "-text")[0];
+        var autonomia = document.getElementsByName(tablaNombres[5].id + "-text")[0];
+        var cantidadPuertas= document.getElementsByName(tablaNombres[6].id + "-text")[0];
+        var asientos = document.getElementsByName(tablaNombres[7].id + "-text")[0];
+        botonAgregar.textContent = option;
+        if(botonAgregar.textContent == "Camion"){
+            cantidadPuertas.parentElement.style.display = 'none';
+            asientos.parentElement.style.display = 'none';
+            cantidadPuertas.value = "";
+            asientos.value = "";
+            autonomia.parentElement.style.display = '';
+            carga.parentElement.style.display = '';
+        }
+        else{
+            cantidadPuertas.parentElement.style.display = '';
+            asientos.parentElement.style.display = '';
+            autonomia.value = "";
+            carga.value = "";
+            autonomia.parentElement.style.display = 'none';
+            carga.parentElement.style.display = 'none';
+        }
+        toggleDropdownAgregar();
+    }
+
+    window.onclick = function(event) {
+    if(!event.target.matches('#dropdownAgregar')){
+        var dropdowns = document.getElementsByClassName("dropdown-content-agregar");
+        for (var i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+    }
+
+    //Lista
+    const tablaNombres = [
+        { id: 'id', name: 'ID' },
+        { id: 'modelo', name: 'Modelo' },
+        { id: 'anoFabricacion', name: 'Año Fabricacion' },
+        { id: 'velMax', name: 'Vel  Max' },
+        { id: 'carga', name: 'Carga' },
+        { id: 'autonomia', name: 'Autonomia' },
+        { id: 'cantidadPuertas', name: 'Cantidad Puertas' },
+        { id: 'asientos', name: 'Asientos' }
+    ];
+    const tablaBotones = [
+        {id: 'botonM', name: 'Modificar'},
+        {id: 'botonE', name: 'Eliminar'}
+    ];
+    
+    //Crear tabla y Amb.
+    const headerTitulos = document.getElementById('headerNombres');
+    tablaNombres.forEach(col => {
+        var th = document.createElement('th');
+        th.id = col.id;
+        var labelTabla = document.createElement('label');
+        labelTabla.textContent = col.name;
+        th.appendChild(labelTabla);
+        headerTitulos.appendChild(th);
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        if (col.id == "id"){
+            input.readOnly = true;
+        }
+        input.name = col.id + '-text';
+        var labelABM = document.createElement('label');
+        labelABM.appendChild(document.createTextNode(col.name + ': '));
+        labelABM.appendChild(input)
+        labelABM.appendChild(document.createElement('br'));
+        sectionInputs.appendChild(labelABM);
+
+    });
+    tablaBotones.forEach(col => {
+        var th = document.createElement('th');
+        th.id = col.id;
+        var labelTabla = document.createElement('label');
+        labelTabla.textContent = col.name;
+        th.appendChild(labelTabla);
+        headerTitulos.appendChild(th);        
+    });
+    
+    document.getElementsByName(tablaNombres[4].id + "-text")[0].parentElement.style.display = 'none';
+    document.getElementsByName(tablaNombres[5].id + "-text")[0].parentElement.style.display = 'none';
+    
+    
+    //Llenar tabla
+    function llenarTabla(vehiculos) {
+        vehiculos.forEach(row => {
+            let tr = document.createElement("tr");
+            tr.id = row.id;
+            for(let i = 0; i < tablaNombres.length; i++){
+                let td = document.createElement("td");
+                td.className = tablaNombres[i].id + "-row";
+
+                switch (i){
+                    case 0:
+                        td.textContent = row.id;
+                        break;
+                    case 1:
+                        td.textContent = row.modelo;
+                        break;
+                    case 2:
+                        td.textContent = row.anoFabricacion;
+                        break;
+                    case 3:
+                        td.textContent = row.velMax;
+                        break;
+                    case 4:
+                        if("carga" in row){
+                            td.textContent = row.carga;
+                        }
+                        else{
+                            td.textContent = "N/A";
+                        }
+                        break;
+                    case 5:
+                        if("autonomia" in row){
+                            td.textContent = row.autonomia;
+                        }
+                        else{
+                            td.textContent = "N/A";
+                        }
+                        break;
+                    case 6:
+                        if("cantidadPuertas" in row){
+                            td.textContent = row.cantidadPuertas;
+                        }
+                        else{
+                            td.textContent = "N/A";
+                        }
+                        break;
+                    case 7:
+                        if("asientos" in row){
+                            td.textContent = row.asientos;
+                        }
+                        else{
+                            td.textContent = "N/A";
+                        }
+                        break;
+                }
+                tr.appendChild(td);
+            }
+            for(let i = 0; i < tablaBotones.length; i++){
+                let td = document.createElement("td");
+                td.className = tablaBotones[i].id + "-row";
+                boton = document.createElement("button");
+                boton.textContent = tablaBotones[i].name;
+                boton.type = "button"; 
+                switch (i){
+                    case 0:
+                        boton.onclick = () => actualizarVehiculo(row.id);
+                        break;
+                    case 1:
+                        boton.onclick = () =>  BorrarVehiculo(row.id);
+                        break;
+                }
+                td.appendChild(boton);
+                tr.appendChild(td);
+            }
+
+            tablaBody.appendChild(tr);
+        });
+    }
+
+    llenarTabla(vehiculos);
+
+    function reiniciarTabla(){
+        tablaBody.innerHTML = '';
+        llenarTabla(vehiculos);
+    }
+
+    function cambiarTitulo(titulo){
+        document.getElementById("titulo").textContent = "Formulario ABM " + titulo;
+    }
+
+    //Movimientos de form
+    function cambiarFormulario(event){
+        event.preventDefault();
+        cambiarTitulo("Alta");
+        ambForm.style.display = '';
+        datosForm.style.display = 'none';
+    }
+    datosForm.addEventListener("submit", cambiarFormulario);
+
+    function habilitar(){
+        var botonAgregar = document.getElementById("dropdownAgregar");
+        botonAgregar.disabled = false;
+    }
+
+    function cancelar(){
+        var botonAgregar = document.getElementById("dropdownAgregar");
+        botonAgregar.disabled = false;
+        for (var i = 0; i < tablaNombres.length; i++){
+            var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+            input.value = "";
+            input.parentElement.style.display = '';
+        }
+        ambForm.style.display = 'none';
+        datosForm.style.display = '';
+    }
+
+    function actualizarVehiculo(id){
+        ambForm.style.display = '';
+        var botonAgregar = document.getElementById("dropdownAgregar");
+        botonAgregar.disabled = true;
+        cambiarTitulo("Modificar");
+        const tr = document.getElementById(id);
+        const celdas = tr.getElementsByTagName("td");
+        const valores = Array.from(celdas).map(celda => celda.textContent);
+        dropdownAgregar = document.getElementById("dropdownAgregar");
+        if (valores[4] == "N/A"){
+            dropdownAgregar.textContent = "Auto";
+        }
+        else{
+            dropdownAgregar.textContent = "Camion";
+        }
+        for (var i = 0; i < tablaNombres.length; i++){
+            var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+            input.value = valores[i];
+            if(input.value == "N/A"){
+                var label = input.parentElement;
+                label.style.display = 'none';
+            }
+            else{
+                var label = input.parentElement;
+                label.style.display = '';
+            }
+        }
+        
+        datosForm.style.display = 'none';
+    }
+
+    async function agregarFetch(elementos) {
+        try {
+            let response;
+            let tipo;
+            
+            if(elementos[4] == ""){
+                tipo = "Auto";
+                response = await fetch("https://examenesutn.vercel.app/api/VehiculoAutoCamion", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "modelo": elementos[1],
+                        "anoFabricacion": parseInt(elementos[2]),
+                        "velMax": parseInt(elementos[3]),
+                        "cantidadPuertas": parseInt(elementos[6]),
+                        "asientos": parseInt(elementos[7])
+                    })
+                });
+            }
+            else{
+                tipo = "Camion";
+                response = await fetch("https://examenesutn.vercel.app/api/VehiculoAutoCamion", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "modelo": elementos[1],
+                        "anoFabricacion": parseInt(elementos[2]),
+                        "velMax": parseInt(elementos[3]),
+                        "carga": parseInt(elementos[4]),
+                        "autonomia": parseInt(elementos[5])
+                    })
+                });
+            }
+            if (response.status != 200) {
+                document.getElementById("overlay").style.display = "none";
+                datosForm.style.display = '';
+                ambForm.style.display = 'none';
+                for (var i = 0; i < tablaNombres.length; i++){
+                    var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                    input.value = "";
+                    input.parentElement.style.display = '';
+                }
+                window.alert(`Algo salió mal ${response.status}`)
+            }
+            const data = await response.json();
+            var vehiculo;
+            if(tipo == "Auto"){
+                vehiculo = new Auto(data.id, elementos[1], elementos[2], elementos[3], elementos[6], elementos[7]);
+            }
+            else{
+                vehiculo = new Camion(data.id, elementos[1], elementos[2], elementos[3], elementos[4], elementos[5]);
+            }
+            
+            vehiculos.push(vehiculo);
+
+            document.getElementById("overlay").style.display = "none";
+            reiniciarTabla();
+            datosForm.style.display = '';
+            ambForm.style.display = 'none';
+            for (var i = 0; i < tablaNombres.length; i++){
+                var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                input.value = "";
+                input.parentElement.style.display = '';
+            }                        
+        } catch (error) {
+            console.error('Hubo un problema con la solicitud:', error);
+        }
+    }
+
+    function modificarFetch(elementos){
+        try {
+            let response;
+            let tipo;
+            if(elementos[4] == "N/A"){
+                response = response = fetch("https://examenesutn.vercel.app/api/VehiculoAutoCamion", {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "id": elementos[0],
+                        "modelo": elementos[1],
+                        "anoFabricacion": parseInt(elementos[2]),
+                        "velMax": parseInt(elementos[3]),
+                        "cantidadPuertas": parseInt(elementos[6]),
+                        "asientos": parseInt(elementos[7])
+                    })
+                })
+                .then(response => {
+                    try{
+                        if (response.status != 200) {
+                        throw new Error(`${response.status}`);
+                        }
+                    }
+                    catch (error) {
+                        console.error("Se produjo un error:", error.message);
+                    } 
+                })
+                .then(data => {
+                    var vehiculo = new Auto(elementos[0], elementos[1], elementos[2], elementos[3], elementos[6], elementos[7]);
+                    
+                    let index = vehiculos.findIndex(obj => obj.id == elementos[0]);
+                    
+                    vehiculos[index] = vehiculo;
+
+                    document.getElementById("overlay").style.display = "none";
+                    reiniciarTabla();
+                    datosForm.style.display = '';
+                    ambForm.style.display = 'none';
+                    for (var i = 0; i < tablaNombres.length; i++){
+                        var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                        input.value = "";
+                        input.parentElement.style.display = '';
+                    }                        
+                });
+            }
+            else{
+                response = response = fetch("https://examenesutn.vercel.app/api/VehiculoAutoCamion", {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "id": elementos[0],
+                        "modelo": elementos[1],
+                        "anoFabricacion": parseInt(elementos[2]),
+                        "velMax": parseInt(elementos[3]),
+                        "carga": parseInt(elementos[4]),
+                        "autonomia": parseInt(elementos[5])
+                    })
+                })
+                .then(response => {
+                    try{
+                        if (response.status != 200) {
+                            document.getElementById("overlay").style.display = "none";
+                            datosForm.style.display = '';
+                            ambForm.style.display = 'none';
+                            for (var i = 0; i < tablaNombres.length; i++){
+                                var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                                input.value = "";
+                                input.parentElement.style.display = '';
+                            }
+                            window.alert(`Algo salió mal ${response.status}`)
+                        }
+                    }
+                    catch (error) {
+                        console.error("Se produjo un error:", error.message);
+                    } 
+                })
+                .then(data => {
+                    var vehiculo = new Camion(elementos[0], elementos[1], elementos[2], elementos[3], elementos[4], elementos[5]);
+                    
+                    let index = vehiculos.findIndex(obj => obj.id == elementos[0]);
+                    
+                    vehiculos[index] = vehiculo;
+
+                    document.getElementById("overlay").style.display = "none";
+                    reiniciarTabla();
+                    datosForm.style.display = '';
+                    ambForm.style.display = 'none';
+                    for (var i = 0; i < tablaNombres.length; i++){
+                        var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                        input.value = "";
+                        input.parentElement.style.display = '';
+                    }                        
+                });
+            }
+            
+        } catch (error) {
+            console.error('Hubo un problema con la solicitud:', error);
+        }
+    }
+    
+    async function borrarFetch(elementos) {
+        try {
+            let response;
+            let tipo;
+            response = await fetch("https://examenesutn.vercel.app/api/VehiculoAutoCamion", {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({"id": parseInt(elementos[0])})
+                });
+
+            if (response.status != 200) {
+                document.getElementById("overlay").style.display = "none";
+                datosForm.style.display = '';
+                ambForm.style.display = 'none';
+                for (var i = 0; i < tablaNombres.length; i++){
+                    var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                    input.value = "";
+                    input.parentElement.style.display = '';
+                }
+                window.alert(`Algo salió mal ${response.status}`)
+            }
+            
+            const data = await response;
+            if(data.ok){
+                let index = vehiculos.findIndex(obj => obj.id == elementos[0]);
+                vehiculos.splice(index, 1);
+                document.getElementById("overlay").style.display = "none";
+                reiniciarTabla();
+                datosForm.style.display = '';
+                ambForm.style.display = 'none';
+                for (var i = 0; i < tablaNombres.length; i++){
+                    var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                    input.value = "";
+                    input.parentElement.style.display = '';
+                }                       
+            }
+        }     
+        catch (error) {
+            console.error('Hubo un problema con la solicitud:', error);
+        }
+    }
+    
+    //Agregar Vehiculo
+    function agregarVehiculo(event) {
+        event.preventDefault();
+
+        var overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+
+        var elementos = [];
+        tablaNombres.forEach(element => {
+            elementos.push(document.getElementsByName(element.id + '-text')[0].value)
+        });
+        
+        let tipo = document.getElementById("titulo");
+        if ((elementos[1] != "" && elementos[2] > 1985 && elementos[3] > 0) ||
+        (tipo.textContent == "Formulario ABM Eliminar")){
+            if ((document.getElementById("dropdownAgregar").innerText == "Auto"
+            && elementos[6]> -1 && elementos[7] > 0) || 
+            (document.getElementById("dropdownAgregar").innerText == "Camion"
+            && elementos[5]> 0 && elementos[4] > 0) ||
+            (tipo.textContent == "Formulario ABM Eliminar"))
+            {
+                if(tipo.textContent == "Formulario ABM Alta"){
+                    agregarFetch(elementos);
+                }
+                else if(tipo.textContent == "Formulario ABM Modificar"){
+                    modificarFetch(elementos);
+                }
+                else if(tipo.textContent == "Formulario ABM Eliminar"){
+                    borrarFetch(elementos);
+                }
+            }
+            else{
+                window.alert("Cantidad de puertas o asientos incorrectos");
+                overlay.style.display = "";
+            }
+        }
+        else{
+            window.alert("Nombre, año o velocidad incorrectos");
+            overlay.style.display = "";
+        }
+    }
+    ambForm.addEventListener("submit", agregarVehiculo);
+
+    //Borrar Vehiculo
+    function BorrarVehiculo(idBorrar){
+        actualizarVehiculo(idBorrar);
+        cambiarTitulo("Eliminar");
+    }
+
+
+</script>
+</html>
