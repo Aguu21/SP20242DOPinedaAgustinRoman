@@ -281,13 +281,12 @@
         document.getElementById("dropdownMenuAgregar").classList.toggle("show");
     }
 
-    function selectOptionAgregar(option) {
+    function corregirDropdown(){
         var botonAgregar = document.getElementById("dropdownAgregar");
         var carga = document.getElementsByName(tablaNombres[4].id + "-text")[0];
         var autonomia = document.getElementsByName(tablaNombres[5].id + "-text")[0];
         var cantidadPuertas= document.getElementsByName(tablaNombres[6].id + "-text")[0];
         var asientos = document.getElementsByName(tablaNombres[7].id + "-text")[0];
-        botonAgregar.textContent = option;
         if(botonAgregar.textContent == "Camion"){
             cantidadPuertas.parentElement.style.display = 'none';
             asientos.parentElement.style.display = 'none';
@@ -304,6 +303,10 @@
             autonomia.parentElement.style.display = 'none';
             carga.parentElement.style.display = 'none';
         }
+    }
+    function selectOptionAgregar(option) {
+        document.getElementById("dropdownAgregar").textContent = option;
+        corregirDropdown();
         toggleDropdownAgregar();
     }
 
@@ -464,9 +467,11 @@
     //Movimientos de form
     function cambiarFormulario(event){
         event.preventDefault();
+        corregirDropdown();
         cambiarTitulo("Alta");
         ambForm.style.display = '';
         datosForm.style.display = 'none';
+
     }
     datosForm.addEventListener("submit", cambiarFormulario);
 
