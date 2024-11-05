@@ -194,6 +194,7 @@
 </form>
 </body>
 <script>
+    //Funcion XML para carga de datos
     function obtenerListaXML(url){
         var xml = new XMLHttpRequest();
         var resultado = [];
@@ -304,6 +305,7 @@
             carga.parentElement.style.display = 'none';
         }
     }
+    
     function selectOptionAgregar(option) {
         document.getElementById("dropdownAgregar").textContent = option;
         corregirDropdown();
@@ -522,6 +524,8 @@
         
         datosForm.style.display = 'none';
     }
+
+    //Usos de fetch
 
     async function agregarFetch(elementos) {
         try {
