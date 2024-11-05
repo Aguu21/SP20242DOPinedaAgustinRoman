@@ -566,8 +566,8 @@
             }
             if (response.status != 200) {
                 document.getElementById("overlay").style.display = "none";
-                datosForm.style.display = '';
                 ambForm.style.display = 'none';
+                datosForm.style.display = '';
                 for (var i = 0; i < tablaNombres.length; i++){
                     var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                     input.value = "";
@@ -588,8 +588,10 @@
 
             document.getElementById("overlay").style.display = "none";
             reiniciarTabla();
-            datosForm.style.display = '';
+
             ambForm.style.display = 'none';
+            datosForm.style.display = '';
+            
             for (var i = 0; i < tablaNombres.length; i++){
                 var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                 input.value = "";
@@ -622,7 +624,15 @@
                 .then(response => {
                     try{
                         if (response.status != 200) {
-                        throw new Error(`${response.status}`);
+                            document.getElementById("overlay").style.display = "none";
+                            ambForm.style.display = 'none';
+                            datosForm.style.display = '';
+                            for (var i = 0; i < tablaNombres.length; i++){
+                                var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
+                                input.value = "";
+                                input.parentElement.style.display = '';
+                            }
+                            window.alert(`Algo salió mal ${response.status}`)
                         }
                     }
                     catch (error) {
@@ -638,8 +648,8 @@
 
                     document.getElementById("overlay").style.display = "none";
                     reiniciarTabla();
-                    datosForm.style.display = '';
                     ambForm.style.display = 'none';
+                    datosForm.style.display = '';
                     for (var i = 0; i < tablaNombres.length; i++){
                         var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                         input.value = "";
@@ -666,8 +676,8 @@
                     try{
                         if (response.status != 200) {
                             document.getElementById("overlay").style.display = "none";
-                            datosForm.style.display = '';
                             ambForm.style.display = 'none';
+                            datosForm.style.display = '';
                             for (var i = 0; i < tablaNombres.length; i++){
                                 var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                                 input.value = "";
@@ -689,8 +699,8 @@
 
                     document.getElementById("overlay").style.display = "none";
                     reiniciarTabla();
-                    datosForm.style.display = '';
                     ambForm.style.display = 'none';
+                    datosForm.style.display = '';
                     for (var i = 0; i < tablaNombres.length; i++){
                         var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                         input.value = "";
@@ -718,8 +728,8 @@
 
             if (response.status != 200) {
                 document.getElementById("overlay").style.display = "none";
-                datosForm.style.display = '';
                 ambForm.style.display = 'none';
+                datosForm.style.display = '';
                 for (var i = 0; i < tablaNombres.length; i++){
                     var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                     input.value = "";
@@ -734,8 +744,8 @@
                 vehiculos.splice(index, 1);
                 document.getElementById("overlay").style.display = "none";
                 reiniciarTabla();
-                datosForm.style.display = '';
                 ambForm.style.display = 'none';
+                datosForm.style.display = '';
                 for (var i = 0; i < tablaNombres.length; i++){
                     var input = document.getElementsByName(tablaNombres[i].id + "-text")[0];
                     input.value = "";
